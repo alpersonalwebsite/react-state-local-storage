@@ -22,9 +22,10 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# env files. .env was NOT covered, only the .local variants: Create React App scaffolds
-# it that way because a committed .env is meant to hold non-secret defaults.
-.env
+# env files. Create React App loads .env, .env.development, .env.production and
+# .env.test as well as the .local variants above, and only the .local ones were ignored.
+# In a demo, any of them is where a reader puts an API URL or a key.
+.env*
 
 # secrets and local databases
 secrets/

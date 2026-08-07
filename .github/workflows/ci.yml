@@ -12,14 +12,29 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    # Two runtimes on purpose. Node 12 is what this project was written against and the
+    # only one where the build works unmodified, since Create React App 3 uses webpack 4,
+    # which asks OpenSSL for MD4 and OpenSSL 3 (Node 17+) does not provide it. Node 12 is
+    # also long past end of life, so it must not be the only thing this is proven against:
+    # the second entry runs everything on a current Node with the
+    # NODE_OPTIONS=--openssl-legacy-provider workaround the README tells readers to use,
+    # so CI verifies that instruction rather than just asserting it.
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - node: '12'
+            node_options: ''
+          - node: '22'
+            node_options: '--openssl-legacy-provider'
+    env:
+      NODE_OPTIONS: ${{ matrix.node_options }}
     steps:
       - uses: actions/checkout@v3
 
       - uses: actions/setup-node@v3
         with:
-          # Pinned to this project's era. Create React App 3 uses webpack 4, which asks
-          # OpenSSL for MD4 and so fails on Node 17+ with ERR_OSSL_EVP_UNSUPPORTED.
-          node-version: '12'
+          node-version: ${{ matrix.node }}
           cache: npm
 
       # npm ci, not npm install: exactly what package-lock.json pins.
