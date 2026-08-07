@@ -21,3 +21,17 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# env files. .env was NOT covered, only the .local variants: Create React App scaffolds
+# it that way because a committed .env is meant to hold non-secret defaults.
+.env
+
+# secrets and local databases
+secrets/
+credentials*
+*.pem
+*.key
+*.log
+*.sqlite
+*.sqlite3
+*.db

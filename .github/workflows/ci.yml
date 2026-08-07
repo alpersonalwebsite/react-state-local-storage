@@ -1,0 +1,35 @@
+# Replaces .travis.yml. travis-ci.org stopped building open source repositories, and
+# that config deployed to a Heroku free dyno (react-state-local-storage.herokuapp.com,
+# now 404) using an encrypted API key that has been dead just as long. It also ran
+# `echo "skipping tests"` where the tests should have been.
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-node@v3
+        with:
+          # Pinned to this project's era. Create React App 3 uses webpack 4, which asks
+          # OpenSSL for MD4 and so fails on Node 17+ with ERR_OSSL_EVP_UNSUPPORTED.
+          node-version: '12'
+          cache: npm
+
+      # npm ci, not npm install: exactly what package-lock.json pins.
+      - run: npm ci
+
+      - run: npm run lint
+
+      # Actually runs the tests, rather than echoing that it is skipping them.
+      - run: npm test -- --watchAll=false
+
+      # CI is set by GitHub Actions, and left alone on purpose: Create React App treats
+      # warnings as errors when it is set, which is what you want from a pipeline.
+      - run: npm run build
