@@ -7,9 +7,10 @@ import { LS_MESSAGES_KEY } from './constants'
 function App() {
   const [messageState, setMessageState] = useState('')
 
-  const messagesInLS = readingLocalStorage()
-
-  const [messagesState, setMessagesState] = useState(messagesInLS)
+  // Lazy initialiser. `useState(readingLocalStorage())` called it on EVERY render and
+  // threw the result away after the first, so every keystroke re-read and re-parsed
+  // localStorage for nothing. Passing the function defers it to the initial render only.
+  const [messagesState, setMessagesState] = useState(readingLocalStorage)
   useLocalStorage(messagesState)
 
   const onChangeInputMessageHandler = e => {
@@ -18,18 +19,17 @@ function App() {
 
   const onSubmitHandler = e => {
     e.preventDefault()
-    setMessageState('')
-    addMessage(e)
-  }
 
-  const addMessage = () => {
-    setMessagesState([
-      ...messagesState,
-      {
-        id: uuidv1(),
-        message: messageState
-      }
-    ])
+    // Empty submissions used to add a blank row: the form had no validation at all.
+    const message = messageState.trim()
+    if (!message) return
+
+    setMessageState('')
+
+    // Functional update. The old version read `messagesState` from the closure, which
+    // is the stale-value trap: two submissions in the same batch would both start from
+    // the same array and the first would be lost.
+    setMessagesState(current => [...current, { id: uuidv1(), message }])
   }
 
   // We are using just one key... LS_MESSAGES_KEY
